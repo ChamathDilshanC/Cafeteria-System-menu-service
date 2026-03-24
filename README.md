@@ -5,7 +5,7 @@
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.3-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2025.1.0-blue.svg)](https://spring.io/projects/spring-cloud)
 [![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://openjdk.java.net/)
-[![MySQL](https://img.shields.io/badge/MySQL-8.0-blue.svg)](https://www.mysql.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
 [![GCP](https://img.shields.io/badge/GCP-Cloud%20Storage-blue.svg)](https://cloud.google.com/storage)
 
 ## 📋 Overview
@@ -34,7 +34,7 @@ The Menu Service manages the cafeteria's food menu, including menu items, catego
 | Spring Cloud Config Client         | 2025.1.0 | Centralized Configuration |
 | Spring Cloud Netflix Eureka Client | 2025.1.0 | Service Discovery         |
 | Spring Data JPA                    | 4.0.3    | Database Access Layer     |
-| MySQL                              | 8.0      | Relational Database       |
+| PostgreSQL                              | 8.0      | Relational Database       |
 | Google Cloud Storage               | Latest   | Image Storage             |
 | Maven                              | 3.9+     | Build Tool                |
 
@@ -44,7 +44,7 @@ The Menu Service manages the cafeteria's food menu, including menu items, catego
 | ----------------------- | -------------------------- |
 | **Service Name**        | `menu-service`             |
 | **Port**                | `8082`                     |
-| **Database**            | MySQL                      |
+| **Database**            | PostgreSQL                      |
 | **Database Name**       | `cafeteria_menu`           |
 | **Cloud Storage**       | Google Cloud Storage (GCS) |
 | **GCS Bucket**          | `cafeteria-menu-images`    |
@@ -76,7 +76,7 @@ CREATE TABLE menu_items (
     INDEX idx_category (category_id),
     INDEX idx_available (is_available),
     INDEX idx_special (is_special)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 ```
 
 ### Categories Table
@@ -92,7 +92,7 @@ CREATE TABLE categories (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_display_order (display_order)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 ```
 
 ### Sample Categories
@@ -109,7 +109,7 @@ CREATE TABLE categories (
 
 - Java 25
 - Maven 3.9+
-- MySQL 8.0
+- PostgreSQL 16
 - Google Cloud Platform Account
 - GCS Bucket configured
 - Port 8082 available
@@ -120,11 +120,11 @@ CREATE TABLE categories (
 
 ```bash
 # Create database
-mysql -u root -p
-CREATE DATABASE cafeteria_menu CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+psql -U postgres
+CREATE DATABASE cafeteria_menu;
 
 # Run initialization script
-mysql -u root -p cafeteria_menu < init-scripts/mysql/02_create_menu_tables.sql
+psql -U postgres -d cafeteria_menu -f init-scripts/postgres/02_create_menu_tables.sql
 ```
 
 ### Google Cloud Storage Setup
@@ -224,10 +224,10 @@ eureka:
 ```yaml
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/cafeteria_menu?useSSL=false&serverTimezone=UTC
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:root}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:postgresql://localhost:5432/cafeteria_menu?useSSL=false&serverTimezone=UTC
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgrespassword}
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
@@ -235,7 +235,7 @@ spring:
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
+        dialect: org.hibernate.dialect.PostgreSQL8Dialect
 
 # Google Cloud Storage Configuration
 gcp:
@@ -587,11 +587,11 @@ menu-service:
   ports:
     - "8082:8082"
   depends_on:
-    - mysql
+    - postgres
     - config-server
     - service-registry
   environment:
-    - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/cafeteria_menu
+    - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/cafeteria_menu
     - GOOGLE_APPLICATION_CREDENTIALS=/app/gcs-key.json
     - GCS_BUCKET_NAME=cafeteria-menu-images
   volumes:
@@ -610,7 +610,7 @@ When deployed on GCP VM with attached service account:
 
 # Just set bucket name
 export GCS_BUCKET_NAME=cafeteria-menu-images
-export SPRING_DATASOURCE_URL=jdbc:mysql://${DB_IP}:3306/cafeteria_menu
+export SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_IP}:5432/cafeteria_menu
 ```
 
 ### PM2 Configuration
@@ -623,7 +623,7 @@ export SPRING_DATASOURCE_URL=jdbc:mysql://${DB_IP}:3306/cafeteria_menu
   env: {
     SERVER_PORT: 8082,
     GCS_BUCKET_NAME: 'cafeteria-menu-images',
-    SPRING_DATASOURCE_URL: 'jdbc:mysql://mysql-instance:3306/cafeteria_menu'
+    SPRING_DATASOURCE_URL: 'jdbc:postgresql://postgres-instance:5432/cafeteria_menu'
   }
 }
 ```
@@ -702,7 +702,7 @@ gcloud projects get-iam-policy YOUR_PROJECT_ID \
 ### External Services
 
 - **Google Cloud Storage**: Image hosting and delivery
-- **MySQL**: Menu data persistence
+- **PostgreSQL**: Menu data persistence
 
 ### Service Discovery
 
