@@ -49,7 +49,7 @@ The Menu Service manages the cafeteria's food menu, including menu items, catego
 | **Cloud Storage**       | Google Cloud Storage (GCS) |
 | **GCS Bucket**          | `cafeteria-menu-images`    |
 | **Eureka Registration** | Yes                        |
-| **Config Server**       | `http://localhost:8888`    |
+| **Config Server**       | `http://localhost:9000`    |
 
 ## 💾 Database Schema
 
@@ -113,7 +113,7 @@ CREATE TABLE categories (
 - Google Cloud Platform Account
 - GCS Bucket configured
 - Port 8082 available
-- Config Server running on port 8888
+- Config Server running on port 9000
 - Service Registry running on port 8761
 
 ### Database Setup
@@ -206,7 +206,7 @@ spring:
   application:
     name: menu-service
   config:
-    import: optional:configserver:http://localhost:8888
+    import: optional:configserver:http://localhost:9000
   servlet:
     multipart:
       enabled: true
@@ -707,7 +707,7 @@ gcloud projects get-iam-policy YOUR_PROJECT_ID \
 ### Service Discovery
 
 - **Registers with**: Eureka Service Registry (8761)
-- **Fetches config from**: Config Server (8888)
+- **Fetches config from**: Config Server (9000)
 
 ## 📄 License
 
